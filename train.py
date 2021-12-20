@@ -56,30 +56,24 @@ def main():
     # "https://automlsamplenotebookdata.blob.core.windows.net/automl-sample-notebook-data/bankmarketing_train.csv"
 
      ### YOUR CODE HERE ###
-    # azureml-core of version 1.0.72 or higher is required
     # azureml-dataprep[pandas] of version 1.1.34 or higher is required
-    from azureml.core import Workspace, Dataset
-
-    subscription_id = '9b72f9e6-56c5-4c16-991b-19c652994860'
-    resource_group = 'aml-quickstarts-165941'
-    workspace_name = 'quick-starts-ws-165941'
-
-    workspace = Workspace(subscription_id, resource_group, workspace_name)
-
-    ds= Dataset.get_by_name(workspace, name='bankmarketing')
-    ds.to_pandas_dataframe()
-    x_df, y_df = clean_data(ds)
+    ds=TabularDatasetFactory.from_delimited_files (['https://automlsamplenotebookdata.blob.core.windows.net/automl-sample-notebook-data/bankmarketing_train.csv'])
+    
+    x, y = clean_data(ds)
 
     # TODO: Split data into train and test sets.
 
     ### YOUR CODE HERE ###a
 
-    X_train, X_test, y_train, y_test = train_test_split(x_df, y_df, test_size=0.2, random_state=66)
+    X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=66)
     
     model = LogisticRegression(C=args.C, max_iter=args.max_iter).fit(X_train, y_train)
 
     accuracy = model.score(X_test, y_test)
     run.log("Accuracy", np.float(accuracy))
+
+    os.makedirs('./outputs', exist_ok=True)
+    joblib.dump(value=model, filename='./outputs/model.joblib')
 
 if __name__ == '__main__':
     main()
